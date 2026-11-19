@@ -7,6 +7,8 @@ another browser window.
 
 It runs in Chrome on your own Mac. Nothing is uploaded: the tracking happens on your computer.
 
+Concept and engineering by **Marlon Barrios Solano**.
+
 ![Notes mode: the hand and all five fingers are tracked, and the stage shows the notes of the scale from C3 to C5](docs/screenshot-notes-fingers.png)
 
 *Notes mode: the right hand and its five fingertips are tracked. The faint lines on the left are the
@@ -30,6 +32,7 @@ notes of the scale; moving a point up and down plays them. The panel shows the M
 11. [Troubleshooting](#troubleshooting)
 12. [CC table](#cc-table)
 13. [Files and credits](#files-and-credits)
+14. [License](#license)
 
 New to MIDI? **[HOW-IT-WORKS.md](HOW-IT-WORKS.md)** explains it in plain language, from the camera
 to a knob turning in Ableton.
@@ -483,6 +486,8 @@ The finger CCs skip 96–101, which synths read as data entry / RPN / NRPN.
 
 ## Files and credits
 
+Concept and engineering by **Marlon Barrios Solano**.
+
 | File | What it is |
 |---|---|
 | `index.html` | The page, panel and styles |
@@ -502,3 +507,12 @@ Built with [p5.js](https://p5js.org) and Google's
 [MediaPipe](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker) Pose and Hand
 Landmarker. The DX7 synth is by Matt Montag ([dx7-synth-js](https://mmontag.github.io/dx7-synth-js/)),
 hosted by Playtronica.
+
+---
+
+## License
+
+[MIT](LICENSE) © 2026 Marlon Barrios Solano. You may use, copy, modify and share this software,
+including commercially, as long as the copyright and license notice are kept.
+
+MediaPipe (Apache 2.0) and p5.js (LGPL 2.1) are loaded from their CDNs and keep their own licenses.

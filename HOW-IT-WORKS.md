@@ -2,6 +2,8 @@
 
 A plain-language guide: what happens from the camera to a knob turning in Ableton Live.
 
+Body Multi-Tracker: concept and engineering by **Marlon Barrios Solano**.
+
 ---
 
 ## 1. The camera sees a body

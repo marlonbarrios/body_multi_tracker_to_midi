@@ -1,7 +1,7 @@
 {
   "name": "Body Multi-Tracker",
   "short_name": "Body Tracker",
-  "description": "Track a performer's body with the webcam and send chosen points to Ableton as MIDI CC.",
+  "description": "Track performers' bodies with the webcam and send chosen points to Ableton or any synth as MIDI. Concept and engineering by Marlon Barrios Solano.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

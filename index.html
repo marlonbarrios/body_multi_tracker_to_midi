@@ -69,6 +69,8 @@
     .chip { padding: 2px 7px; font-size: 11px; }
     .chip.on { background: var(--c); color: #000; border-color: var(--c); }
     .keys { color: #555; margin-top: 18px; }
+    .credit { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); color: #777; font-size: 11px; }
+    .credit b { color: #bbb; font-weight: 600; }
     .lbl { color: #888; white-space: nowrap; }
     .hint { color: #555; font-size: 11px; }
     #chMap { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 4px 0; color: #aaa; }
@@ -185,6 +187,7 @@
     <h2>Monitor</h2>
     <pre id="monitor"></pre>
 
+    <div class="credit">Concept and engineering by <b>Marlon Barrios Solano</b> · MIT License</div>
     <div class="keys">X = CC n (0 left → 127 right) · Y = CC n+1 (0 low → 127 high).<br>“map” sends only that CC for 1.5 s, for Ableton MIDI Map.<br>More bodies: body 1 on the channel above, body 2 on the next, and so on. Same CC numbers on every body.</div>
   </aside>
 </body>
