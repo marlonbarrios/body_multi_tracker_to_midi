@@ -67,7 +67,7 @@ function colorOf(k) {
   return PALETTE[(i < 0 ? BodyPoints.byId[id].index : i) % PALETTE.length];
 }
 
-function stageW() { return Math.max(240, windowWidth - PANEL_W); }
+function stageW() { return UI.panelHidden ? windowWidth : Math.max(240, windowWidth - PANEL_W); }
 
 function setup() {
   const c = createCanvas(stageW(), windowHeight);
@@ -78,6 +78,8 @@ function setup() {
   video.elt.muted = true;
   video.hide();
   UI.init();
+  window._setupDone = true;
+  UI.viewChanged();
 }
 
 function windowResized() { resizeCanvas(stageW(), windowHeight); }
@@ -458,7 +460,7 @@ function drawHud() {
   const sending = [...selected].filter((k) => parseKey(k)[0] < n).length;
   text(`${tracking}  ·  ${nf(frameRate(), 2, 0)} fps  ·  ${sending} sending`, 14, 12);
   fill(90);
-  text('click a point to send · click again to stop · 1–4 bodies · R re-assign · V video · M mirror · C clear', 14, height - 22);
+  text('click a point to send · click again to stop · F full screen · H panel · 1–4 bodies · R re-assign · V video · M mirror · C clear', 14, height - 22);
 }
 
 function mousePressed() {
@@ -471,5 +473,7 @@ function keyPressed() {
   if (key === 'm' || key === 'M') UI.set('mirror', !UI.mirror);
   if (key === 'c' || key === 'C') clearAll();
   if (key === 'r' || key === 'R') reassignByPosition();
+  if (key === 'f' || key === 'F') UI.toggleFullscreen();
+  if (key === 'h' || key === 'H') UI.togglePanel();
   if ('1234'.includes(key)) UI.setBodies(+key);
 }

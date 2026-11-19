@@ -37,6 +37,11 @@
       $('#link').onchange = (e) => UI.set('link', e.target.checked);
       $('#clear').onclick = () => clearAll();
       $('#reassign').onclick = () => reassignByPosition();
+      document.querySelectorAll('.fsBtn').forEach((b) => (b.onclick = () => UI.toggleFullscreen()));
+      document.querySelectorAll('.panelBtn').forEach((b) => (b.onclick = () => UI.togglePanel()));
+      document.addEventListener('fullscreenchange', UI.viewChanged);
+      document.addEventListener('webkitfullscreenchange', UI.viewChanged);
+      UI.viewChanged();
       document.querySelectorAll('#bodies button').forEach((b) => (b.onclick = () => UI.setBodies(+b.dataset.n)));
       document.querySelectorAll('#mode button').forEach((b) => (b.onclick = () => UI.setMode(b.dataset.m)));
 
@@ -77,9 +82,32 @@
       if (key === 'mirror') $('#mirror').checked = value;
       if (key === 'link') $('#link').checked = value;
       try {
-        const keep = ['smoothing', 'showVideo', 'mirror', 'bodies', 'link', 'chipBody', 'sendMode', 'scale', 'root', 'octave', 'range', 'xControl', 'fingers'];
+        const keep = ['smoothing', 'showVideo', 'mirror', 'bodies', 'link', 'chipBody', 'sendMode', 'scale', 'root', 'octave', 'range', 'xControl', 'fingers', 'panelHidden'];
         localStorage.setItem('bmt.ui', JSON.stringify(Object.fromEntries(keep.map((k) => [k, UI[k]]))));
       } catch {}
+    },
+
+    // Full screen hides Chrome's title bar and everything else; Esc (or F) leaves.
+    toggleFullscreen() {
+      const d = document, el = d.documentElement;
+      const isFs = d.fullscreenElement || d.webkitFullscreenElement;
+      if (isFs) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+      else {
+        const p = (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+        if (p && p.catch) p.catch((e) => console.warn('fullscreen', e));
+      }
+    },
+    // Hide the right-hand panel so the stage fills the window (MIDI keeps running).
+    togglePanel() {
+      UI.set('panelHidden', !UI.panelHidden);
+      UI.viewChanged();
+    },
+    viewChanged() {
+      const d = document;
+      const isFs = !!(d.fullscreenElement || d.webkitFullscreenElement);
+      document.body.classList.toggle('nopanel', !!UI.panelHidden);
+      document.querySelectorAll('.fsBtn').forEach((b) => (b.textContent = isFs ? '⛶ Exit full screen' : '⛶ Full screen'));
+      if (typeof resizeCanvas === 'function' && window._setupDone) resizeCanvas(stageW(), windowHeight);
     },
 
     setMode(m) {

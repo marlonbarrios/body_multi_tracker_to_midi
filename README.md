@@ -138,8 +138,17 @@ picture the MIDI output isn't connected yet ("No MIDI outputs found"); the yello
 | **MAPPING X / Y** | The *map* button is sending only this CC, for Ableton's MIDI Map. |
 | **WAITING** | Selected, but the body hasn't been seen yet. |
 
-**Keys:** **1–4** number of bodies · **R** re-assign bodies left to right · **V** camera ·
-**M** mirror · **C** stop all.
+**Keys:** **F** full screen · **H** hide/show the panel · **1–4** number of bodies ·
+**R** re-assign bodies left to right · **V** camera · **M** mirror · **C** stop all.
+
+### Full screen and hiding the panel
+
+- **⛶ Full screen** (top of the panel, or key **F**) fills the whole screen: no white title bar, no
+  browser, no Dock. Press **Esc** or **F** to leave.
+- **Hide panel** (or key **H**) gives the stage the whole window, which is good for performing or
+  projecting. MIDI keeps running. A small **Show panel** / **Full screen** button stays in the top
+  right corner; it is faint until you move the mouse over it.
+- Use both for a clean stage view: **F** then **H**.
 
 Your selection, MIDI port, channel and settings are remembered between sessions.
 
@@ -406,6 +415,7 @@ channels, so for a different sound per dancer, use Ableton ([step 4C](#step-4c--
 | A mapping grabbed the wrong axis or point | Delete it in the MIDI Mappings list and use the **map** button. |
 | Mappings stopped working | The channel in the app changed. Set it back to the one you mapped with. |
 | Two dancers swapped channels | They crossed or overlapped. Press **R** (Re-assign by position). |
+| I can't see everything / the window is too small / the white bar is in the way | Press **F** for full screen (Esc leaves) and **H** to hide the panel. |
 | Values jitter | Raise **Smoothing**; improve the light; keep the body fully in frame. |
 | Low frame rate | Turn off **Track fingers**; set BODIES to the real number of people. |
 | A row says **HOLD** / **SILENT** | The camera can't see that point. It continues when the point is seen again. |
