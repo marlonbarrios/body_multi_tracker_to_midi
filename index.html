@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Body Multi-Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <style>
+    :root { --panel: 380px; --line: #222; --dim: #777; --text: #ddd; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #000; color: var(--text); overflow: hidden;
+      font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    #stage { position: fixed; left: 0; top: 0; bottom: 0; right: var(--panel); }
+    canvas { display: block; }
+    #panel { position: fixed; right: 0; top: 0; bottom: 0; width: var(--panel); background: #070707;
+      border-left: 1px solid var(--line); overflow-y: auto; padding: 16px; }
+    h1 { font-size: 13px; letter-spacing: .2em; margin: 0 0 14px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
+    #install { letter-spacing: 0; font-size: 11px; background: #fff; color: #000; border-color: #fff; }
+    h2 { font-size: 11px; letter-spacing: .15em; color: var(--dim); margin: 18px 0 8px; font-weight: normal; text-transform: uppercase; }
+    select, button { font: inherit; color: var(--text); background: #111; border: 1px solid #333; border-radius: 4px; padding: 5px 8px; }
+    button { cursor: pointer; }
+    button:hover { border-color: #666; }
+    .line { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+    .line select { flex: 1; min-width: 0; }
+    label { display: flex; gap: 6px; align-items: center; color: #aaa; }
+    input[type=range] { flex: 1; accent-color: #fff; }
+    #led { width: 9px; height: 9px; border-radius: 50%; background: #222; flex: none; }
+    #led.on { background: #3dff8a; box-shadow: 0 0 8px #3dff8a; }
+    #midiState { color: #aaa; }
+    .help { color: #c9a14a; background: #171206; border: 1px solid #3a2e10; border-radius: 4px; padding: 8px; margin-top: 6px; }
+    #monitor { margin: 0; background: #0c0c0c; border: 1px solid var(--line); border-radius: 4px; padding: 8px; color: #6f6; min-height: 60px; white-space: pre; }
+    #empty { color: var(--dim); border: 1px dashed #333; border-radius: 4px; padding: 12px; }
+
+    .row { border: 1px solid var(--line); border-left: 3px solid var(--c); border-radius: 4px; padding: 8px 10px; margin-bottom: 8px; background: #0c0c0c; }
+    .row .head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .row .head b { color: #fff; font-weight: 600; flex: 1; }
+    .row .sym { color: var(--c); font-size: 15px; animation: beat .8s ease-in-out infinite; }
+    .row .state { color: var(--c); font-size: 10px; letter-spacing: .12em; }
+    .row.lost .sym, .row.paused .sym { animation: none; opacity: .3; }
+    .row.lost .state, .row.paused .state { color: var(--dim); }
+    .row.lost { opacity: .6; }
+    .row.held .sym { animation: none; }
+    .row.held .state { color: #ffb020; }
+    .row .x { padding: 0 7px; line-height: 18px; }
+    .axis { display: grid; grid-template-columns: 12px 48px 1fr 28px 40px; gap: 8px; align-items: center; margin: 3px 0; }
+    .axis i { color: var(--dim); font-style: normal; }
+    .axis em { font-style: normal; text-align: right; color: #fff; }
+    .bar { height: 6px; background: #1a1a1a; border-radius: 3px; overflow: hidden; }
+    .fill { height: 100%; width: 0; background: var(--c); }
+    .map { padding: 1px 6px; font-size: 10px; }
+    .map.active { background: var(--c); color: #000; border-color: var(--c); }
+    @keyframes beat { 50% { opacity: .35; transform: scale(.8); } }
+
+    details summary { cursor: pointer; color: var(--dim); font-size: 11px; letter-spacing: .15em; text-transform: uppercase; margin: 18px 0 8px; }
+    #chips { display: flex; flex-wrap: wrap; gap: 4px; }
+    .grp { width: 100%; color: #555; font-size: 10px; margin-top: 6px; }
+    .chip { padding: 2px 7px; font-size: 11px; }
+    .chip.on { background: var(--c); color: #000; border-color: var(--c); }
+    .keys { color: #555; margin-top: 18px; }
+    .lbl { color: #888; white-space: nowrap; }
+    .hint { color: #555; font-size: 11px; }
+    #chMap { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 4px 0; color: #aaa; }
+    #chMap b { color: var(--c); }
+    .seg { display: flex; gap: 4px; }
+    .seg button { flex: 1; }
+    .seg button.on { background: #fff; color: #000; border-color: #fff; }
+    .seg.small { margin-bottom: 6px; }
+    .seg.small button { font-size: 11px; padding: 3px 6px; }
+    .seg.small button.on { background: var(--c); border-color: var(--c); }
+    #multi { margin-top: 6px; }
+    .bodyhead { display: flex; gap: 10px; align-items: baseline; margin: 14px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--c); color: #aaa; font-size: 11px; }
+    .bodyhead b { color: var(--c); letter-spacing: .12em; }
+    .bodyhead .bstate { color: var(--c); }
+    .bodyhead .bcount { margin-left: auto; color: #666; }
+    .bodyhead.off .bstate { color: #ffb020; }
+    .noteline { display: none; gap: 8px; align-items: baseline; margin-top: 4px; }
+    body[data-mode=notes] .noteline, body[data-mode=both] .noteline { display: flex; }
+    body[data-mode=notes] .map { visibility: hidden; }
+    .noteline span { color: var(--c); }
+    .noteline b { color: #fff; font-size: 14px; min-width: 38px; }
+    .noteline i { color: #777; font-style: normal; font-size: 11px; }
+    #noteSet { margin-top: 8px; padding: 8px; border: 1px solid var(--line); border-radius: 4px; background: #0c0c0c; }
+  </style>
+  <script>
+    window.Pose = { status: 'loading body tracking…', ready: false };
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch((e) => console.warn('sw', e));
+    // Chrome offers to install the page as an app; show our own button for it.
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault(); window.__install = e;
+      const b = document.getElementById('install'); if (b) b.hidden = false;
+    });
+    window.addEventListener('appinstalled', () => { const b = document.getElementById('install'); if (b) b.hidden = true; });
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/p5.min.js"></script>
+  <script type="module" src="pose.js"></script>
+  <script src="points.js"></script>
+  <script src="midi.js"></script>
+  <script src="notes.js"></script>
+  <script src="ui.js"></script>
+  <script src="sketch.js"></script>
+  <script>
+    document.addEventListener('click', async (e) => {
+      if (e.target.id !== 'install' || !window.__install) return;
+      window.__install.prompt(); await window.__install.userChoice; window.__install = null; e.target.hidden = true;
+    });
+  </script>
+</head>
+<body>
+  <main id="stage"></main>
+  <aside id="panel">
+    <h1>BODY MULTI-TRACKER <button id="install" hidden title="Install as a Chrome app (own window, Dock icon)">Install app</button></h1>
+
+    <h2>MIDI out</h2>
+    <div class="line"><span id="led"></span><select id="port"></select></div>
+    <div class="line"><span id="chLabel" class="lbl">Channel</span><select id="channel"></select></div>
+    <div id="chMap"></div>
+    <div class="line"><span id="midiState"></span></div>
+    <div id="portHelp" class="help" hidden>No IAC bus found. On the Mac open <b>Audio MIDI Setup</b> → Window → Show MIDI Studio → double-click <b>IAC Driver</b> → tick “Device is online”. It then shows up here.</div>
+
+    <h2>Send</h2>
+    <div id="mode" class="seg">
+      <button data-m="cc">Controllers</button><button data-m="notes">Notes</button><button data-m="both">Both</button>
+    </div>
+    <div id="modeHelp" class="hint" style="margin-top:6px"></div>
+    <div id="noteSet" hidden>
+      <div class="line"><span class="lbl">Scale</span><select id="scale"></select></div>
+      <div class="line"><span class="lbl">Root</span><select id="root"></select><select id="octave"></select></div>
+      <div class="line"><span class="lbl">Range</span><select id="range"></select></div>
+      <div class="line"><span class="lbl">Left–right</span><select id="xctl">
+        <option value="mod">Mod wheel (CC 1)</option><option value="bend">Pitch bend</option><option value="none">Nothing</option>
+      </select></div>
+      <div class="line"><button id="panic" title="Stop every sounding note">All notes off</button></div>
+    </div>
+
+    <h2>Bodies</h2>
+    <div id="bodies" class="seg">
+      <button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button><button data-n="4">4</button>
+    </div>
+    <div id="multi" hidden>
+      <label class="line"><input id="link" type="checkbox"> Same points on all bodies</label>
+      <div class="line"><button id="reassign" title="Renumber the bodies from left to right on screen">Re-assign by position</button><span class="hint">left → right = 1, 2, 3, 4</span></div>
+    </div>
+
+    <h2>Sending · <span id="count">0</span></h2>
+    <div id="empty">Click any point on the skeleton to start sending its X / Y. Click it again to stop.</div>
+    <div id="list"></div>
+
+    <details>
+      <summary>All points</summary>
+      <div id="chipTabs" class="seg small" hidden></div>
+      <div id="chips"></div>
+    </details>
+
+    <h2>Options</h2>
+    <label>Smoothing <input id="smooth" type="range" min="0" max="0.95" step="0.05"></label>
+    <div class="line">
+      <label><input id="video" type="checkbox"> Show camera</label>
+      <label><input id="mirror" type="checkbox"> Mirror</label>
+    </div>
+    <div class="line">
+      <label title="Runs MediaPipe's hand model for the five fingertips and the true palm centre. Off = rough fingers from the body model, faster."><input id="fingers" type="checkbox"> Track fingers</label>
+      <button id="clear">Stop all</button>
+    </div>
+
+    <h2>Monitor</h2>
+    <pre id="monitor"></pre>
+
+    <div class="keys">X = CC n (0 left → 127 right) · Y = CC n+1 (0 low → 127 high).<br>“map” sends only that CC for 1.5 s, for Ableton MIDI Map.<br>More bodies: body 1 on the channel above, body 2 on the next, and so on. Same CC numbers on every body.</div>
+  </aside>
+</body>
+</html>
