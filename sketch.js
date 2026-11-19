@@ -233,8 +233,14 @@ function sendAll() {
     // so Ableton stays exactly where it was until the point is seen again.
     if (!p || p.v < VIS) { if (s.live[id]) s.live[id].held = true; continue; }
     const o = normOf(p);
-    // Y is flipped for MIDI so raising a limb raises the value.
-    s.live[id] = { x: o.x, y: o.y, vx: Math.round(o.x * 127), vy: Math.round((1 - o.y) * 127), held: false };
+    // Raw values: X 0 = left … 1 = right, Y 0 = bottom … 1 = top (raising a limb raises it),
+    // either in the camera frame or relative to this body's chest.
+    const m = Mapping.get(k);
+    let rx = o.x, ry = 1 - o.y;
+    if (m.coords === 'body') { const r = bodyRel(s, o); if (r) { rx = r.x; ry = r.y; } }
+    Mapping.feed(k, rx, ry);
+    const X = Mapping.axis(m.x, rx), Y = Mapping.axis(m.y, ry);
+    s.live[id] = { x: o.x, y: o.y, rx, ry, tx: X.t, ty: Y.t, ox: X.out, oy: Y.out, vx: X.midi, vy: Y.midi, held: false };
   }
 
   const solo = Midi.solo && now < Midi.solo.until ? Midi.solo : null;
@@ -261,6 +267,20 @@ function sendAll() {
   if (mode !== 'cc') playNotes(n);
 }
 
+// Position relative to the body: 0.5 = at the chest, 1 unit = 4 torso lengths (torso = shoulders
+// to hips), so the value follows the performer, not the camera.
+function bodyRel(s, o) {
+  const P = s.pts, ids = ['shoulder_l', 'shoulder_r', 'hip_l', 'hip_r', 'chest'];
+  if (ids.some((id) => !P[id] || P[id].v < VIS)) return null;
+  const n = (id) => normOf(P[id]);
+  const sh = { x: (n('shoulder_l').x + n('shoulder_r').x) / 2, y: (n('shoulder_l').y + n('shoulder_r').y) / 2 };
+  const hp = { x: (n('hip_l').x + n('hip_r').x) / 2, y: (n('hip_l').y + n('hip_r').y) / 2 };
+  const torso = Math.hypot((sh.x - hp.x) * aspect, sh.y - hp.y);
+  if (torso < 1e-3) return null;
+  const c = n('chest'), unit = 4 * torso;
+  return { x: 0.5 + ((o.x - c.x) * aspect) / unit, y: 0.5 + (c.y - o.y) / unit };
+}
+
 // Notes mode: height plays a note from the scale; left–right of the body's FIRST selected point
 // moves the mod wheel or pitch bend on that body's channel. A lost point stops its note.
 function playNotes(n) {
@@ -272,12 +292,12 @@ function playNotes(n) {
       const L = s.live[P.id];
       if (!L || L.held) { Notes.release(s.notes[P.id]); continue; }
       const st = s.notes[P.id] || (s.notes[P.id] = {});
-      Notes.update(st, 1 - L.y, ch);
+      Notes.update(st, L.ty, ch); // height after the point's range mapping
       if (!expr) {
         expr = true;
         if (UI.xControl === 'mod' && s.lastSent.mod !== L.vx) { s.lastSent.mod = L.vx; Midi.cc(1, L.vx, ch); }
         if (UI.xControl === 'bend') {
-          const v = Math.round((L.x * 2 - 1) * 100) / 100;
+          const v = Math.round((L.tx * 2 - 1) * 100) / 100;
           if (s.lastSent.bend !== v) { s.lastSent.bend = v; Midi.bend(v, ch); }
         }
       }
@@ -318,6 +338,7 @@ function draw() {
 
   if (UI.sendMode !== 'cc') drawNoteSteps();
   placedLabels = [];
+  drawRanges();
   findHover();
   for (let b = 0; b < nBodies(); b++) drawSkeleton(b);
   for (let b = 0; b < nBodies(); b++) drawPoints(b, false);
@@ -325,6 +346,37 @@ function draw() {
   sendAll();
   drawHud();
   UI.tick();
+}
+
+// While a point's range editor is open (or it is learning), show its input range on the stage.
+function drawRanges() {
+  for (const k of selected) {
+    const [b, id] = parseKey(k);
+    if (b >= nBodies()) continue;
+    const learn = Mapping.learnBox(k);
+    if (!learn && !UI.openMaps.has(k)) continue;
+    const m = Mapping.get(k);
+    const c = color(colorOf(k));
+    let box;
+    if (learn && isFinite(learn.x0)) box = { x0: learn.x0, x1: learn.x1, y0: learn.y0, y1: learn.y1 };
+    else box = { x0: Math.min(m.x.in0, m.x.in1), x1: Math.max(m.x.in0, m.x.in1), y0: Math.min(m.y.in0, m.y.in1), y1: Math.max(m.y.in0, m.y.in1) };
+    // to screen: in body coords, centre the box on this body's chest
+    let toS = (rx, ry) => ({ x: fit.x + rx * fit.w, y: fit.y + (1 - ry) * fit.h });
+    if (m.coords === 'body') {
+      const s = slots[b], P = s.pts;
+      if (!P.chest || !P.shoulder_l || !P.hip_l) continue;
+      const cS = screenOf(P.chest);
+      const a = screenOf(P.shoulder_l), z = screenOf(P.hip_l);
+      const unitPx = 4 * dist(a.x, a.y, z.x, z.y);
+      toS = (rx, ry) => ({ x: cS.x + (rx - 0.5) * unitPx, y: cS.y - (ry - 0.5) * unitPx });
+    }
+    const p0 = toS(box.x0, box.y1), p1 = toS(box.x1, box.y0);
+    c.setAlpha(learn ? 230 : 170); stroke(c); strokeWeight(learn ? 2.5 : 1.5); noFill();
+    drawingContext.setLineDash([6, 5]);
+    rect(p0.x, p0.y, p1.x - p0.x, p1.y - p0.y);
+    drawingContext.setLineDash([]);
+    if (learn) { noStroke(); fill(c); textSize(11); textAlign(LEFT, BOTTOM); text(`learning range… ${Mapping.learnLeft(k).toFixed(1)} s`, p0.x + 4, p0.y - 4); }
+  }
 }
 
 function findHover() {

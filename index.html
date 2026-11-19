@@ -87,6 +87,23 @@
     .bodyhead .bstate { color: var(--c); }
     .bodyhead .bcount { margin-left: auto; color: #666; }
     .bodyhead.off .bstate { color: #ffb020; }
+    .rawline { color: #777; font-size: 10.5px; margin-top: 3px; min-height: 13px; }
+    .row .rng { padding: 0 6px; line-height: 18px; font-size: 10px; color: #999; }
+    .row .rng.custom { color: var(--c); border-color: var(--c); }
+    .row .rng.open { background: #222; }
+    .mapedit { margin-top: 8px; padding: 8px; border: 1px dashed #333; border-radius: 4px; }
+    .mapedit .coords { display: flex; flex-wrap: wrap; gap: 4px 10px; color: #999; font-size: 11px; margin-bottom: 6px; }
+    .mapedit .coords label { color: #ccc; }
+    .mgrid { display: grid; grid-template-columns: 12px repeat(4, 1fr) 34px 1.4fr; gap: 3px; align-items: center; }
+    .mgrid i { color: #666; font-style: normal; font-size: 9.5px; }
+    .mgrid input[type=number] { width: 100%; min-width: 0; font: inherit; font-size: 11px; color: #ddd; background: #111; border: 1px solid #333; border-radius: 3px; padding: 2px 3px; }
+    .mgrid select { font-size: 10px; padding: 2px; min-width: 0; }
+    .mgrid .ax { color: var(--c); }
+    .mgrid .inv { font-size: 10px; gap: 2px; color: #999; }
+    .mbtns { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .mbtns button { font-size: 10.5px; padding: 3px 7px; }
+    .mbtns .learn.active { background: var(--c); color: #000; border-color: var(--c); }
+    .mhelp { color: #555; font-size: 10px; margin-top: 6px; }
     .noteline { display: none; gap: 8px; align-items: baseline; margin-top: 4px; }
     body[data-mode=notes] .noteline, body[data-mode=both] .noteline { display: flex; }
     body[data-mode=notes] .map { visibility: hidden; }
@@ -110,6 +127,7 @@
   <script src="points.js"></script>
   <script src="midi.js"></script>
   <script src="notes.js"></script>
+  <script src="mapping.js"></script>
   <script src="ui.js"></script>
   <script src="sketch.js"></script>
   <script>

@@ -78,6 +78,15 @@ with 128 knob numbers on it.
 Other channels come in when there are **several performers**: each body gets its own channel,
 with the same CC numbers (section 7).
 
+### You can shape the numbers first
+
+Each point shows its **raw** position (0.000–1.000) and can be **mapped** before it's sent. Click
+**⚙ range** on its row to choose which part of the movement counts (or let the app **learn** it
+while you move), what numbers come out, whether it's inverted, and the curve. You can also
+measure from the **body** instead of the camera frame: then a hand's value is the same wherever the
+dancer stands. This matters because MIDI has only 128 steps. Mapping makes even a small movement
+use all of them. The README explains every setting.
+
 ### Only changes are sent
 
 A number is only sent when it **changes**. If you stand still, nothing is sent, and Ableton

@@ -29,14 +29,15 @@ notes of the scale; moving a point up and down plays them. The panel shows the M
 4. [The screen, explained](#the-screen-explained)
 5. [The 46 tracked points](#the-46-tracked-points)
 6. [Send modes: Controllers, Notes, Both](#send-modes-controllers-notes-both)
-7. [Several bodies](#several-bodies-up-to-4)
-8. [**Connecting to Ableton Live, step by step**](#connecting-to-ableton-live-step-by-step)
-9. [Browser synths: the Playtronica DX7](#browser-synths-the-playtronica-dx7)
-10. [Camera and performance tips](#camera-and-performance-tips)
-11. [Troubleshooting](#troubleshooting)
-12. [CC table](#cc-table)
-13. [Files and credits](#files-and-credits)
-14. [License](#license)
+7. [**Mapping values: raw numbers → your range**](#mapping-values-raw-numbers--your-range)
+8. [Several bodies](#several-bodies-up-to-4)
+9. [**Connecting to Ableton Live, step by step**](#connecting-to-ableton-live-step-by-step)
+10. [Browser synths: the Playtronica DX7](#browser-synths-the-playtronica-dx7)
+11. [Camera and performance tips](#camera-and-performance-tips)
+12. [Troubleshooting](#troubleshooting)
+13. [CC table](#cc-table)
+14. [Files and credits](#files-and-credits)
+15. [License](#license)
 
 New to MIDI? **[HOW-IT-WORKS.md](HOW-IT-WORKS.md)** explains it in plain language, from the camera
 to a knob turning in Ableton.
@@ -48,6 +49,9 @@ to a knob turning in Ableton.
 - **Tracks the whole body** with Google's MediaPipe: 46 points per person, including the head, chest,
   hips, 6 points along each arm and each leg, the palm centre and **all five fingertips**.
 - **You choose the points**: click a point to start sending it, click again to stop.
+- **Map the values in the app:** see the raw position (0–1) of every point, then set your own
+  range, invert, curve and output numbers, or let the app **learn** the range from the movement.
+  Values can be measured from the camera frame or from the performer's body.
 - **Two ways to send:**
   - **Controllers:** each point is two knobs (X and Y, as MIDI CC). You map them to anything in
     Ableton: a filter, a volume, a macro.
@@ -231,6 +235,62 @@ Notes and controllers at the same time. Right wrist X (CC 64) is not sent in thi
 synths read CC 64 as the sustain pedal.
 
 ---
+
+## Mapping values: raw numbers → your range
+
+Every selected point can turn its raw position into **the numbers you need**, inside the app,
+before anything is sent. Click **⚙ range** on a point's row in SENDING to open its editor.
+
+### Why map in the app?
+
+MIDI only has 128 steps (0–127). Without mapping, those steps cover the **whole camera frame**. A
+nose that moves across 15% of the frame would use only about 20 of them, and Ableton's Min/Max
+can stretch that but can't add detail that was never sent. Mapping in the app stretches the
+movement **before** it becomes MIDI, so even a small movement uses all 128 steps. It works the same
+for Ableton, a browser synth, or anything else.
+
+### The three numbers on each row
+
+Under the bars, each row shows `raw 0.480, 0.760 → out 39.5, 51.6`:
+
+| Number | What it is |
+|---|---|
+| **raw** | The position, **0.000–1.000**. X: 0 = left, 1 = right. Y: 0 = bottom, 1 = top. Shown with 3 decimals. |
+| **out** | The mapped value, after your input range, invert, curve and output range. Shown when you set an output range other than 0–127. |
+| **MIDI** | The big number on the right of each bar (0–127): what is actually sent as CC. The bar shows the mapped position. |
+
+### The range editor
+
+| Setting | What it does |
+|---|---|
+| **Measure from: camera frame / body (chest)** | *Camera frame:* the position in the picture. *Body:* the position **relative to the performer's chest**, scaled by their size (0.5 = at the chest, 1 unit = 4 torso lengths). In body mode, a hand gives the same value wherever the dancer stands and however close they are to the camera. |
+| **in min / in max** | Which part of the raw range counts. Below *in min* gives the lowest output, above *in max* the highest. |
+| **● Learn range (5 s)** | Press it, then move the point through its full range for 5 seconds. The app records how far it went and sets *in min / in max* for X and Y. A dashed box on the stage shows the range while you learn, and while the editor is open. |
+| **out min / out max** | What the range becomes. Default **0–127**. Any numbers work: 30–90, −1 to 1, 20–20000… |
+| **inv** | Invert: moving up makes the value go down. |
+| **curve** | *Linear*, *Slow → fast* (gentle at first, good for volume), *Fast → slow*, or *S-curve*. |
+| **Reset** | Back to the full frame, 0–127. |
+| **Copy to all bodies** | With several bodies: give every dancer the same mapping for this point. |
+
+**MIDI with custom output ranges.** MIDI CC can only carry 0–127:
+
+- If your output range is **inside 0–127** (for example 30–90), the MIDI value *is* the output.
+  This is how you limit a knob's range from the app.
+- If it's **outside** (for example 20–20000), the MIDI value is the same position scaled to 0–127,
+  and the *out* number shows your values in the panel.
+
+**Notes mode uses the mapping too.** The point's mapped Y picks the note, so *Learn range* makes
+the scale fit exactly the height range a dancer actually uses. The mapped X drives the mod wheel or
+pitch bend.
+
+Mappings are saved in the browser and come back the next time you open the app.
+
+### Example: a small head movement that controls the whole filter
+
+1. Select the **nose**, then click **⚙ range**.
+2. Click **● Learn range (5 s)** and turn and nod your head comfortably for 5 seconds.
+3. The dashed box shows the range. From now on, that small movement covers the **full 0–127**.
+4. In Ableton, map Nose X to the filter as usual (see [step 4A](#step-4a--controllers-map-a-body-point-to-a-knob)).
 
 ## Several bodies (up to 4)
 
@@ -435,6 +495,8 @@ channels, so for a different sound per dancer, use Ableton ([step 4C](#step-4c--
 | Mappings stopped working | The channel in the app changed. Set it back to the one you mapped with. |
 | Two dancers swapped channels | They crossed or overlapped. Press **R** (Re-assign by position). |
 | I can't see everything / the window is too small / the white bar is in the way | Press **F** for full screen (Esc leaves) and **H** to hide the panel. |
+| A small movement only moves the knob a little / the value looks "steppy" | Open **⚙ range** on that point and use **Learn range** ([Mapping values](#mapping-values-raw-numbers--your-range)). |
+| A value changes when the dancer walks or comes closer | Open **⚙ range** and choose **Measure from: body (chest)**. |
 | Values jitter | Raise **Smoothing**; improve the light; keep the body fully in frame. |
 | Low frame rate | Turn off **Track fingers**; set BODIES to the real number of people. |
 | A row says **HOLD** / **SILENT** | The camera can't see that point. It continues when the point is seen again. |
@@ -512,6 +574,7 @@ Concept and engineering by **Marlon Barrios Solano**.
 | `pose.js` | MediaPipe Pose Landmarker (bodies) and Hand Landmarker (fingers) |
 | `midi.js` | Web MIDI output: CC, notes, pitch bend |
 | `notes.js` | Notes mode: scales, height → pitch, velocity |
+| `mapping.js` | Value mapping: input/output ranges, invert, curves, learn, body coordinates |
 | `ui.js` | The right-hand panel |
 | `serve.py` | Local no-cache web server (port 8765) |
 | `Start Body Tracker.command` | Double-click launcher |
