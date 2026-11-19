@@ -21,6 +21,13 @@
     xControl: 'mod',  // left–right in notes mode: 'mod' | 'bend' | 'none'
     fingers: true,    // run the hand model for real fingertips (costs some speed)
     openMaps: new Set(), // rows whose range editor is open ("b:id")
+    oscOn: false,     // OSC OUT via the bridge
+    oscUrl: 'ws://localhost:8766',
+    oscHost: '127.0.0.1',
+    oscPort: 9000,
+    oscRaw: true,     // send /raw (0–1)
+    oscOut: false,    // send /out (mapped)
+    oscAll: false,    // all points, not only selected
 
     init() {
       try { Object.assign(UI, JSON.parse(localStorage.getItem('bmt.ui') || '{}')); } catch {}
@@ -71,6 +78,18 @@
       $('#port').onchange = (e) => Midi.select(e.target.value);
 
       Mapping.onchange = () => UI.rebuild();
+
+      // OSC OUT
+      for (const [id, key] of [['#oscOn', 'oscOn'], ['#oscRaw', 'oscRaw'], ['#oscOut', 'oscOut'], ['#oscAll', 'oscAll']]) {
+        $(id).checked = UI[key];
+        $(id).onchange = (e) => { UI.set(key, e.target.checked); UI.oscView(); OSC.update(); };
+      }
+      $('#oscHost').value = UI.oscHost; $('#oscPort').value = UI.oscPort; $('#oscUrl').value = UI.oscUrl;
+      $('#oscHost').onchange = (e) => { UI.set('oscHost', e.target.value.trim() || '127.0.0.1'); OSC.configure(); };
+      $('#oscPort').onchange = (e) => { UI.set('oscPort', Math.max(1, Math.min(65535, +e.target.value || 9000))); OSC.configure(); };
+      $('#oscUrl').onchange = (e) => { UI.set('oscUrl', e.target.value.trim() || 'ws://localhost:8766'); OSC.reconnect(); };
+      UI.oscView();
+      OSC.update();
       Midi.onchange = UI.ports;
       Midi.init();
 
@@ -84,10 +103,13 @@
       if (key === 'mirror') $('#mirror').checked = value;
       if (key === 'link') $('#link').checked = value;
       try {
-        const keep = ['smoothing', 'showVideo', 'mirror', 'bodies', 'link', 'chipBody', 'sendMode', 'scale', 'root', 'octave', 'range', 'xControl', 'fingers', 'panelHidden'];
+        const keep = ['smoothing', 'showVideo', 'mirror', 'bodies', 'link', 'chipBody', 'sendMode', 'scale', 'root', 'octave', 'range', 'xControl', 'fingers', 'panelHidden',
+          'oscOn', 'oscUrl', 'oscHost', 'oscPort', 'oscRaw', 'oscOut', 'oscAll'];
         localStorage.setItem('bmt.ui', JSON.stringify(Object.fromEntries(keep.map((k) => [k, UI[k]]))));
       } catch {}
     },
+
+    oscView() { $('#oscSet').hidden = !UI.oscOn; },
 
     // Full screen hides Chrome's title bar and everything else; Esc (or F) leaves.
     toggleFullscreen() {
@@ -320,6 +342,16 @@
         ? Midi.error
         : Midi.out ? `→ ${Midi.out.name} · ${chs} · ${Midi.rate} msg/s` : (Midi.access ? 'Pick a MIDI output' : 'Waiting for MIDI permission…');
       $('#monitor').textContent = Midi.log.join('\n') || '(no messages yet)';
+
+      // OSC status
+      const oled = $('#oscLed'), st = $('#oscState');
+      oled.className = !UI.oscOn ? '' : OSC.connected ? 'on' : 'wait';
+      st.textContent = !UI.oscOn ? 'off'
+        : OSC.connected ? `● bridge connected → ${OSC.dest || UI.oscHost + ':' + UI.oscPort} · ${OSC.bridgeRate} msg/s`
+        : '○ waiting for the bridge…';
+      $('#oscHelp').hidden = !UI.oscOn || OSC.connected;
+      $('#oscSample').textContent = UI.oscOn && OSC.connected && OSC.sample ? 'last: ' + OSC.sample : '';
+      if (OSC.error) st.textContent += ' · ' + OSC.error;
     },
   };
 })();

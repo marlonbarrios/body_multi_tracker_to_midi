@@ -172,6 +172,18 @@ This works with any MIDI instrument, including one in another browser window, su
 Playtronica DX7: the tracker sends into the IAC Driver, and the DX7 page listens to it. The README
 has the step-by-step.
 
+## 9. Exact numbers for other programs: OSC
+
+MIDI is made for music and only has 128 steps. Programs for visuals and interaction, like
+TouchDesigner, Max, Pure Data, Processing or Unity, usually speak **OSC**, which carries exact
+decimal numbers with names such as `/body/1/hand_r/raw 0.734 0.912` (body 1, right hand, raw
+x and y).
+
+A web page isn't allowed to send OSC on its own, so a tiny helper program, the **OSC bridge**,
+does it. Double-click **Start OSC Bridge.command**, tick **Send OSC** in the app, and the numbers
+flow to port 9000 on this computer, or to another computer on the network. OSC and MIDI can run
+together. The README lists every address and how to receive them in each program.
+
 ---
 
 ## Ideas for using it

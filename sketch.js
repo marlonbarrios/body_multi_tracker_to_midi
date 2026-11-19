@@ -232,16 +232,10 @@ function sendAll() {
     // Lost (body out of view or this point hidden): HOLD the last numbers. Nothing new is sent,
     // so Ableton stays exactly where it was until the point is seen again.
     if (!p || p.v < VIS) { if (s.live[id]) s.live[id].held = true; continue; }
-    const o = normOf(p);
-    // Raw values: X 0 = left … 1 = right, Y 0 = bottom … 1 = top (raising a limb raises it),
-    // either in the camera frame or relative to this body's chest.
-    const m = Mapping.get(k);
-    let rx = o.x, ry = 1 - o.y;
-    if (m.coords === 'body') { const r = bodyRel(s, o); if (r) { rx = r.x; ry = r.y; } }
-    Mapping.feed(k, rx, ry);
-    const X = Mapping.axis(m.x, rx), Y = Mapping.axis(m.y, ry);
-    s.live[id] = { x: o.x, y: o.y, rx, ry, tx: X.t, ty: Y.t, ox: X.out, oy: Y.out, vx: X.midi, vy: Y.midi, held: false };
+    s.live[id] = valuesOf(k, s, p);
+    Mapping.feed(k, s.live[id].rx, s.live[id].ry);
   }
+  if (UI.oscOn) oscFrame(n);
 
   const solo = Midi.solo && now < Midi.solo.until ? Midi.solo : null;
   if (solo) {
@@ -265,6 +259,41 @@ function sendAll() {
     }
   }
   if (mode !== 'cc') playNotes(n);
+}
+
+// Raw values: X 0 = left … 1 = right, Y 0 = bottom … 1 = top (raising a limb raises it), either in
+// the camera frame or relative to this body's chest; then the point's ⚙ range mapping.
+function valuesOf(k, s, p) {
+  const o = normOf(p);
+  const m = Mapping.get(k);
+  let rx = o.x, ry = 1 - o.y;
+  if (m.coords === 'body') { const r = bodyRel(s, o); if (r) { rx = r.x; ry = r.y; } }
+  const X = Mapping.axis(m.x, rx), Y = Mapping.axis(m.y, ry);
+  return { x: o.x, y: o.y, rx, ry, tx: X.t, ty: Y.t, ox: X.out, oy: Y.out, vx: X.midi, vy: Y.midi, held: false };
+}
+
+// OSC OUT: every frame, the raw and/or mapped values of the selected points (or of all points),
+// plus /body/N/tracked. Lost points send nothing (they hold, like MIDI).
+function oscFrame(n) {
+  const now = performance.now();
+  const beat = now - OSC.lastTrackedSent > 1000;
+  if (beat) OSC.lastTrackedSent = now;
+  for (let b = 0; b < n; b++) {
+    const s = slots[b], tr = isTracked(b) ? 1 : 0;
+    if (beat || OSC.lastTracked[b] !== tr) { OSC.lastTracked[b] = tr; OSC.add(`/body/${b + 1}/tracked`, 'i', [tr]); }
+    if (!tr) continue;
+    for (const P of BodyPoints.POINTS) {
+      const k = keyOf(b, P.id);
+      if (!UI.oscAll && !selected.has(k)) continue;
+      const p = s.pts[P.id];
+      if (!p || p.v < VIS) continue;
+      const L = selected.has(k) && s.live[P.id] && !s.live[P.id].held ? s.live[P.id] : valuesOf(k, s, p);
+      const base = `/body/${b + 1}/${P.id}`;
+      if (UI.oscRaw) OSC.add(base + '/raw', 'ff', [+L.rx.toFixed(5), +L.ry.toFixed(5)]);
+      if (UI.oscOut) OSC.add(base + '/out', 'ff', [+L.ox.toFixed(5), +L.oy.toFixed(5)]);
+    }
+  }
+  OSC.flush();
 }
 
 // Position relative to the body: 0.5 = at the chest, 1 unit = 4 torso lengths (torso = shoulders

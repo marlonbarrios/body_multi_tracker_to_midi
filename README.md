@@ -30,14 +30,15 @@ notes of the scale; moving a point up and down plays them. The panel shows the M
 5. [The 46 tracked points](#the-46-tracked-points)
 6. [Send modes: Controllers, Notes, Both](#send-modes-controllers-notes-both)
 7. [**Mapping values: raw numbers → your range**](#mapping-values-raw-numbers--your-range)
-8. [Several bodies](#several-bodies-up-to-4)
-9. [**Connecting to Ableton Live, step by step**](#connecting-to-ableton-live-step-by-step)
-10. [Browser synths: the Playtronica DX7](#browser-synths-the-playtronica-dx7)
-11. [Camera and performance tips](#camera-and-performance-tips)
-12. [Troubleshooting](#troubleshooting)
-13. [CC table](#cc-table)
-14. [Files and credits](#files-and-credits)
-15. [License](#license)
+8. [**OSC out: raw numbers for TouchDesigner, Max, Pd, Processing…**](#osc-out-raw-numbers-for-touchdesigner-max-pd-processing)
+9. [Several bodies](#several-bodies-up-to-4)
+10. [**Connecting to Ableton Live, step by step**](#connecting-to-ableton-live-step-by-step)
+11. [Browser synths: the Playtronica DX7](#browser-synths-the-playtronica-dx7)
+12. [Camera and performance tips](#camera-and-performance-tips)
+13. [Troubleshooting](#troubleshooting)
+14. [CC table](#cc-table)
+15. [Files and credits](#files-and-credits)
+16. [License](#license)
 
 New to MIDI? **[HOW-IT-WORKS.md](HOW-IT-WORKS.md)** explains it in plain language, from the camera
 to a knob turning in Ableton.
@@ -56,6 +57,9 @@ to a knob turning in Ableton.
   - **Controllers:** each point is two knobs (X and Y, as MIDI CC). You map them to anything in
     Ableton: a filter, a volume, a macro.
   - **Notes:** each point **plays** notes. Height = pitch in a scale, speed = loudness.
+- **OSC out, with exact numbers:** send the raw (0–1) and/or mapped values of any point as OSC to
+  TouchDesigner, Max/MSP, Pure Data, Processing, Unity, Max for Live, on this computer or another
+  one on the network. It needs one small extra program, the **OSC bridge** (double-click to start).
 - **Up to 4 performers**, each on their own MIDI channel, with the same layout, so you set it up once.
 - **Steady in performance:** when a point is lost it holds its last value (or stops its note), and
   notes never hang.
@@ -72,6 +76,8 @@ to a knob turning in Ableton.
 4. In the panel on the right, **MIDI OUT → IAC Driver Bus 1**.
 5. **Click a point** on the skeleton, for example your right hand.
 6. **In Ableton**, turn on *Remote* for the IAC Driver and map a knob ([details below](#connecting-to-ableton-live-step-by-step)).
+7. *Optional, for TouchDesigner, Max, Pd, Processing…:* double-click **`Start OSC Bridge.command`**
+   and tick **Send OSC** in the panel ([OSC out](#osc-out-raw-numbers-for-touchdesigner-max-pd-processing)).
 
 ---
 
@@ -147,6 +153,7 @@ picture the MIDI output isn't connected yet ("No MIDI outputs found"); the yello
 | **SENDING** | Every selected point, grouped by body: its state, CC numbers, live values (0–127) and bars, the note it's playing, and **map** buttons for Ableton. |
 | **ALL POINTS** | Every point as a button, to pick points by name. |
 | **OPTIONS** | Smoothing, show camera, mirror, **Track fingers**, **Stop all**. |
+| **OSC OUT** | Send OSC (exact numbers) through the OSC bridge: destination IP and port, raw and/or mapped values, all points or only selected ones. A blue light means connected. See [OSC out](#osc-out-raw-numbers-for-touchdesigner-max-pd-processing). |
 | **MONITOR** | The last MIDI messages actually sent, for example `ch1  CC  22   64`. |
 
 **Row states in SENDING**
@@ -291,6 +298,147 @@ Mappings are saved in the browser and come back the next time you open the app.
 2. Click **● Learn range (5 s)** and turn and nod your head comfortably for 5 seconds.
 3. The dashed box shows the range. From now on, that small movement covers the **full 0–127**.
 4. In Ableton, map Nose X to the filter as usual (see [step 4A](#step-4a--controllers-map-a-body-point-to-a-knob)).
+
+## OSC out: raw numbers for TouchDesigner, Max, Pd, Processing…
+
+MIDI is made for music software and has only 128 steps. **OSC** (Open Sound Control) carries
+**exact decimal numbers** with readable names, and it's what TouchDesigner, Max/MSP, Pure Data,
+Processing, Unity, Isadora, openFrameworks and Max for Live use. OSC works **at the same time as
+MIDI**: you can send MIDI to Ableton and OSC to TouchDesigner from the same movement.
+
+### Why there's a bridge
+
+A web page is not allowed to send OSC itself (browsers can't send UDP packets). So the app hands
+its numbers to a tiny program on your computer, the **OSC bridge**, and the bridge sends the real
+OSC messages:
+
+```
+ app (Chrome) ──WebSocket ws://localhost:8766──▶ OSC bridge ──OSC (UDP)──▶ 127.0.0.1:9000
+                                                (osc_bridge.py)            TouchDesigner, Max, Pd…
+```
+
+The bridge is one Python file, `osc_bridge.py`, in this folder. It needs **nothing installed**:
+macOS already has Python 3. It works with both the live app and the local version.
+
+### Step by step
+
+1. **Start the bridge.** Double-click **`Start OSC Bridge.command`**. A Terminal window opens and
+   says *waiting for the app on ws://localhost:8766*. **Leave it open** while you work.
+   - From a terminal instead: `python3 osc_bridge.py`.
+   - First time only: if macOS says the file can't be opened, right-click it → **Open** → **Open**.
+   - Using the live app? Download this repository (green **Code** button → *Download ZIP*) to get
+     the bridge files.
+2. **In the app**, under **OSC OUT**, tick **Send OSC**. The light turns **blue** and the status
+   says **● bridge connected → 127.0.0.1:9000**. If it says *waiting for the bridge…*, the bridge
+   isn't running (step 1). It connects by itself as soon as the bridge starts.
+   - Chrome may ask whether the page may *access devices on your local network*. Click **Allow**:
+     that's the bridge.
+3. **Choose where OSC goes:**
+   - **To:** the IP address of the computer that receives. **127.0.0.1** means this Mac. Use the
+     other computer's address (for example `192.168.1.20`) to send over the network.
+   - **port:** the UDP port your program listens on. Default **9000**.
+4. **Choose what's sent:**
+   - **raw 0–1:** the position as 0.000–1.000, the same "raw" numbers shown on each row.
+   - **mapped (⚙ range):** each point's mapped output (your [range](#mapping-values-raw-numbers--your-range)).
+   - **all 46 points:** every tracked point of every body, not only the ones you clicked. This
+     is useful to drive a whole skeleton in TouchDesigner or Unity.
+5. **Click points** (or tick *all 46 points*). The panel shows the **last message sent**, and the
+   bridge window shows messages per second.
+
+### The OSC messages
+
+N is the body number (1–4). *point* is the point's name, listed below.
+
+| Address | Values | What it is |
+|---|---|---|
+| `/body/N/point/raw` | 2 floats: x y | Raw position. **x:** 0 = left → 1 = right. **y:** 0 = bottom → 1 = top. In *body* coordinates (⚙ range), relative to the chest instead. |
+| `/body/N/point/out` | 2 floats: x y | The mapped values from the point's ⚙ range (your output range, invert, curve). |
+| `/body/N/tracked` | 1 int: 1 or 0 | 1 = this body is seen, 0 = lost. Sent when it changes and once a second. |
+
+Examples:
+
+```
+/body/1/hand_r/raw   0.734  0.912     ← body 1's right hand, high on the right
+/body/1/hand_r/out   14684.2  115.8   ← the same, after a 20–20000 / 0–127 mapping
+/body/2/nose/raw     0.312  0.705
+/body/1/tracked      1
+```
+
+- Messages are sent **every frame** (about 15–60 times a second, depending on the computer) while
+  the point is seen.
+- When a point or body is lost, **nothing is sent** for it, so your program keeps the last value.
+  Watch `/body/N/tracked` to know when someone left.
+
+**Point names** used in the addresses:
+
+| Group | Point names |
+|---|---|
+| Head | `head_top`, `nose`, `eye_l`, `eye_r`, `ear_l`, `ear_r` |
+| Torso | `neck`, `chest`, `belly`, `pelvis`, `hip_l`, `hip_r` |
+| Left arm | `shoulder_l`, `upperarm_l`, `elbow_l`, `forearm_l`, `wrist_l`, `hand_l` |
+| Right arm | `shoulder_r`, `upperarm_r`, `elbow_r`, `forearm_r`, `wrist_r`, `hand_r` |
+| Left leg | `thigh_l`, `knee_l`, `shin_l`, `ankle_l`, `heel_l`, `toes_l` |
+| Right leg | `thigh_r`, `knee_r`, `shin_r`, `ankle_r`, `heel_r`, `toes_r` |
+| Left fingers | `thumb_l`, `index_l`, `middle_l`, `ring_l`, `pinky_l` |
+| Right fingers | `thumb_r`, `index_r`, `middle_r`, `ring_r`, `pinky_r` |
+
+### Receiving OSC in your program
+
+Set your program to listen on the **same port** (default 9000).
+
+- **TouchDesigner:** add an **OSC In CHOP**, *Network Port* 9000. Each address becomes channels
+  you can use anywhere. An **OSC In DAT** on the same port shows the messages as text.
+- **Max/MSP:** `[udpreceive 9000]` → `[route /body/1/hand_r/raw]` → `[unpack f f]` gives x and y.
+- **Pure Data:** `[netreceive -u -b 9000]` → `[oscparse]` → `[list trim]` → `[route body]` →
+  `[route 1]` → `[route hand_r]` → `[route raw]` → `[unpack f f]`.
+- **Processing** (oscP5 library):
+
+  ```java
+  import oscP5.*;
+  OscP5 osc;
+  float hx, hy;
+  void setup() { size(800, 800); osc = new OscP5(this, 9000); }
+  void draw()  { background(0); circle(hx * width, (1 - hy) * height, 30); }
+  void oscEvent(OscMessage m) {
+    if (m.checkAddrPattern("/body/1/hand_r/raw")) { hx = m.get(0).floatValue(); hy = m.get(1).floatValue(); }
+  }
+  ```
+
+  Note `1 - hy`: OSC's y goes up, a screen's y goes down.
+- **Python** (python-osc): `dispatcher.map("/body/1/*/raw", handler)` with a
+  `BlockingOSCUDPServer(("127.0.0.1", 9000), dispatcher)`.
+- **Ableton Live:** Live itself doesn't receive OSC; use a **Max for Live** device (for example
+  `[udpreceive 9000]` inside a Max for Live device, or the OSC devices in Ableton's free
+  *Connection Kit*). For plain knob mapping, MIDI (above) is simpler.
+
+### Sending to another computer
+
+1. Find the receiving computer's IP address (on a Mac: System Settings → Wi-Fi → Details).
+2. In the app, set **To** to that address, for example `192.168.1.20`, and the port its program uses.
+3. Both computers must be on the same network, and the receiving computer's firewall must allow
+   incoming UDP on that port.
+
+The bridge itself always runs on the computer with the camera.
+
+### Bridge options and security
+
+- The bridge only accepts connections from **this app** (`http://localhost:8765`, `http://127.0.0.1:8765`
+  and `https://marlonbarrios.github.io`), only from this computer. Other websites are refused.
+- Different WebSocket port: `python3 osc_bridge.py --ws-port 9100`, then in the app open
+  **OSC OUT → Bridge address** and enter `ws://localhost:9100`.
+- Running the app from somewhere else: `python3 osc_bridge.py --allow-origin https://your.site`.
+- Stop the bridge by closing its window or pressing **Ctrl+C**.
+
+### OSC troubleshooting
+
+| Problem | Fix |
+|---|---|
+| Status says **○ waiting for the bridge…** and a yellow box appears | Start **Start OSC Bridge.command** and leave its window open. |
+| The bridge window says *Could not start the bridge… already running?* | One bridge is already open. Use that one, or close it first. |
+| The bridge window says *refused a connection from …* | The page isn't this app. Use the live app or localhost:8765, or start the bridge with `--allow-origin`. |
+| Connected, but your program gets nothing | Same **port** in both? **To** = 127.0.0.1 for this Mac? No points selected? (tick *all 46 points* to test.) Is the body tracked? |
+| Nothing arrives on another computer | Check the IP address and the firewall there (UDP port open). |
+| Values look upside down in your program | OSC y goes **up** (0 = bottom). For screen coordinates, use `1 - y`. |
 
 ## Several bodies (up to 4)
 
@@ -575,6 +723,9 @@ Concept and engineering by **Marlon Barrios Solano**.
 | `midi.js` | Web MIDI output: CC, notes, pitch bend |
 | `notes.js` | Notes mode: scales, height → pitch, velocity |
 | `mapping.js` | Value mapping: input/output ranges, invert, curves, learn, body coordinates |
+| `osc.js` | OSC OUT: sends the numbers to the OSC bridge |
+| `osc_bridge.py` | The OSC bridge: WebSocket in, OSC (UDP) out. Python 3, no installs |
+| `Start OSC Bridge.command` | Double-click launcher for the OSC bridge |
 | `ui.js` | The right-hand panel |
 | `serve.py` | Local no-cache web server (port 8765) |
 | `Start Body Tracker.command` | Double-click launcher |

@@ -1,8 +1,8 @@
 // Service worker: makes Body Multi-Tracker installable as a Chrome app and lets it start offline.
 // App files: network first (so edits show up), cache as fallback.
 // Libraries + the pose model from CDNs: cache first (they're versioned and big).
-const CACHE = 'bmt-v5';
-const APP = ['./', 'index.html', 'sketch.js', 'points.js', 'pose.js', 'midi.js', 'notes.js', 'mapping.js', 'ui.js',
+const CACHE = 'bmt-v6';
+const APP = ['./', 'index.html', 'sketch.js', 'points.js', 'pose.js', 'midi.js', 'notes.js', 'mapping.js', 'osc.js', 'ui.js',
   'manifest.webmanifest', 'favicon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {

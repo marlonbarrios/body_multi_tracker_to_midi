@@ -104,6 +104,17 @@
     .mbtns button { font-size: 10.5px; padding: 3px 7px; }
     .mbtns .learn.active { background: var(--c); color: #000; border-color: var(--c); }
     .mhelp { color: #555; font-size: 10px; margin-top: 6px; }
+    h2 .sub { text-transform: none; letter-spacing: 0; color: #555; }
+    #oscLed { width: 9px; height: 9px; border-radius: 50%; background: #222; flex: none; }
+    #oscLed.on { background: #4da3ff; box-shadow: 0 0 8px #4da3ff; }
+    #oscLed.wait { background: #ffb020; }
+    #oscSet { margin-top: 4px; padding: 8px; border: 1px solid var(--line); border-radius: 4px; background: #0c0c0c; }
+    .txt { font: inherit; color: #ddd; background: #111; border: 1px solid #333; border-radius: 4px; padding: 4px 6px; min-width: 0; flex: 1; }
+    .txt.num { flex: 0 0 72px; }
+    .oscaddr { color: #666; font-size: 10.5px; margin-top: 6px; word-break: break-word; }
+    .oscaddr code, .help code { color: #9cf; }
+    #oscSample { color: #4da3ff; }
+    .oscadv summary { font-size: 10px; margin: 6px 0 0; }
     .noteline { display: none; gap: 8px; align-items: baseline; margin-top: 4px; }
     body[data-mode=notes] .noteline, body[data-mode=both] .noteline { display: flex; }
     body[data-mode=notes] .map { visibility: hidden; }
@@ -128,6 +139,7 @@
   <script src="midi.js"></script>
   <script src="notes.js"></script>
   <script src="mapping.js"></script>
+  <script src="osc.js"></script>
   <script src="ui.js"></script>
   <script src="sketch.js"></script>
   <script>
@@ -156,6 +168,19 @@
     <div id="chMap"></div>
     <div class="line"><span id="midiState"></span></div>
     <div id="portHelp" class="help" hidden>No IAC bus found. On the Mac open <b>Audio MIDI Setup</b> → Window → Show MIDI Studio → double-click <b>IAC Driver</b> → tick “Device is online”. It then shows up here.</div>
+
+    <h2>OSC out <span class="sub">· raw numbers for TouchDesigner, Max, Pd…</span></h2>
+    <div class="line"><span id="oscLed"></span><label><input id="oscOn" type="checkbox"> Send OSC</label></div>
+    <div id="oscState" class="hint"></div>
+    <div id="oscSet" hidden>
+      <div class="line"><span class="lbl">To</span><input id="oscHost" class="txt" value="127.0.0.1" title="IP address of the computer that receives OSC (127.0.0.1 = this Mac)"><span class="lbl">port</span><input id="oscPort" class="txt num" type="number" value="9000" title="UDP port your OSC program listens on"></div>
+      <div class="line"><span class="lbl">Values</span><label><input id="oscRaw" type="checkbox"> raw 0–1</label><label><input id="oscOut" type="checkbox"> mapped (⚙ range)</label></div>
+      <div class="line"><label><input id="oscAll" type="checkbox"> all 46 points (not only the selected ones)</label></div>
+      <div id="oscHelp" class="help" hidden>The OSC bridge isn't running. Double-click <b>Start OSC Bridge.command</b> in the app folder (or run <code>python3 osc_bridge.py</code>) and leave its window open. This connects automatically.</div>
+      <div class="oscaddr">Addresses: <code>/body/1/hand_r/raw x y</code> · <code>/body/1/hand_r/out x y</code> · <code>/body/1/tracked 1|0</code></div>
+      <div id="oscSample" class="oscaddr"></div>
+      <details class="oscadv"><summary>Bridge address</summary><div class="line"><input id="oscUrl" class="txt" value="ws://localhost:8766"></div></details>
+    </div>
 
     <h2>Send</h2>
     <div id="mode" class="seg">
