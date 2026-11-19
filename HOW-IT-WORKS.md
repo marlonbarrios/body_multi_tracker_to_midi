@@ -3,6 +3,7 @@
 A plain-language guide: what happens from the camera to a knob turning in Ableton Live.
 
 Body Multi-Tracker: concept and engineering by **Marlon Barrios Solano**.
+Live app: https://marlonbarrios.github.io/body_multi_tracker_to_midi/
 
 ---
 

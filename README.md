@@ -1,5 +1,9 @@
 # Body Multi-Tracker
 
+### ▶ Live app: **[https://marlonbarrios.github.io/body_multi_tracker_to_midi/](https://marlonbarrios.github.io/body_multi_tracker_to_midi/)**
+
+Open it in **Chrome**, allow the camera and MIDI, and you're running. Nothing to install.
+
 **Turn a dancer's body into a MIDI instrument.** A webcam watches up to four performers. You click
 the body points you care about (a hand, a fingertip, the head, a knee), and the app streams their
 movement as MIDI to **Ableton Live**, or to any synth that accepts MIDI, including synths running in
@@ -58,7 +62,8 @@ to a knob turning in Ableton.
 ## Quick start
 
 1. **Turn on the Mac's virtual MIDI cable** (once): the [IAC Driver](#step-1--turn-on-the-iac-driver-once).
-2. **Start the app**: double-click **`Start Body Tracker.command`** in this folder. It opens in Chrome.
+2. **Open the app**: the **[live app](https://marlonbarrios.github.io/body_multi_tracker_to_midi/)** in Chrome. Or run it locally: double-click
+   **`Start Body Tracker.command`** in this folder.
 3. **Allow the camera and MIDI** when Chrome asks.
 4. In the panel on the right, **MIDI OUT → IAC Driver Bus 1**.
 5. **Click a point** on the skeleton, for example your right hand.
@@ -74,9 +79,15 @@ to a knob turning in Ableton.
   Safari and Firefox don't support Web MIDI.
 - A webcam (built-in is fine) and an internet connection the first time, to load the tracking models.
 
-### Starting it
+### Option 1: the live app (easiest)
 
-Double-click **`Start Body Tracker.command`**. It starts a small local web server on port **8765**
+Open **https://marlonbarrios.github.io/body_multi_tracker_to_midi/** in Chrome. It's served by GitHub Pages over HTTPS, so the camera and Web MIDI
+work straight away, and it always has the latest version. The first visit needs the internet; after
+that it also starts offline.
+
+### Option 2: run it locally
+
+Use this to work offline from the start, or to change the code. Double-click **`Start Body Tracker.command`**. It starts a small local web server on port **8765**
 and opens the app in its own Chrome window. Keep the Terminal window that appears open while you
 use the app.
 
@@ -95,8 +106,13 @@ then open **http://localhost:8765** in Chrome.
 
 With the app open, click **Install app** at the top of the panel, or use Chrome's install icon in
 the address bar (⋮ → *Cast, save and share* → *Install page as app…*). It then has its own window
-and a Dock icon. The local server still has to be running, so start it with the `.command` file.
-Always install from **http://localhost:8765**: Chrome ties an installed app to that address.
+and a Dock icon.
+
+- **Installed from the live app** (recommended): no server needed, it updates itself when the
+  repository changes, and it works offline after the first run.
+- **Installed from http://localhost:8765**: the local server must be running (start it with the
+  `.command` file). Chrome ties an installed app to the address it was installed from, so the two
+  are separate apps.
 
 ---
 
@@ -412,7 +428,7 @@ channels, so for a different sound per dancer, use Ableton ([step 4C](#step-4c--
 | **MIDI OUT says "No MIDI outputs found"** | The IAC Driver isn't online ([step 1](#step-1--turn-on-the-iac-driver-once)). Then reload the app (⌘R). |
 | Audio MIDI Setup shows microphones and speakers, no IAC | That's the Audio Devices window. Menu bar → **Window → Show MIDI Studio** (⌘2). |
 | "MIDI permission was blocked" | Click the icon left of Chrome's address bar → allow **MIDI devices** → reload. |
-| The panel has no SEND section, or old features | The window is showing an old copy. Check the address is **localhost:8765** and press ⌘R (or ⌘⇧R). |
+| The panel has no SEND section, or old features | The window is showing an old copy. Use the [live app](https://marlonbarrios.github.io/body_multi_tracker_to_midi/) or **localhost:8765**, and press ⌘R (or ⌘⇧R). |
 | MONITOR shows messages but Ableton doesn't react | **Remote** (for knobs) or **Track** (for notes) isn't on for *In: IAC Driver* ([step 3](#step-3--let-ableton-listen-once)). |
 | Notes mode: the Ableton instrument is silent | Track's *MIDI From* = IAC Driver, the right channel, **Monitor: In** ([step 4B](#step-4b--notes-play-an-ableton-instrument)). |
 | A mapping grabbed the wrong axis or point | Delete it in the MIDI Mappings list and use the **map** button. |
