@@ -331,8 +331,11 @@ macOS already has Python 3. It works with both the live app and the local versio
 2. **In the app**, under **OSC OUT**, tick **Send OSC**. The light turns **blue** and the status
    says **● bridge connected → 127.0.0.1:9000**. If it says *waiting for the bridge…*, the bridge
    isn't running (step 1). It connects by itself as soon as the bridge starts.
-   - Chrome may ask whether the page may *access devices on your local network*. Click **Allow**:
-     that's the bridge.
+   - **Live app only:** the first time, Chrome asks to let the page **access apps and devices on
+     your local network / this device**. Click **Allow**: that's the bridge. If you clicked
+     *Block* by mistake, the panel says *blocked by Chrome (local network access)*. Fix it with the
+     icon at the left of the address bar → **Site settings** → **Local network access** →
+     **Allow**, then reload. The local version (localhost:8765) doesn't need this.
 3. **Choose where OSC goes:**
    - **To:** the IP address of the computer that receives. **127.0.0.1** means this Mac. Use the
      other computer's address (for example `192.168.1.20`) to send over the network.
@@ -434,6 +437,7 @@ The bridge itself always runs on the computer with the camera.
 | Problem | Fix |
 |---|---|
 | Status says **○ waiting for the bridge…** and a yellow box appears | Start **Start OSC Bridge.command** and leave its window open. |
+| Status says **blocked by Chrome (local network access)** (live app) | Address bar icon → **Site settings** → **Local network access** → **Allow**, then reload. Or use the local version (localhost:8765). |
 | The bridge window says *Could not start the bridge… already running?* | One bridge is already open. Use that one, or close it first. |
 | The bridge window says *refused a connection from …* | The page isn't this app. Use the live app or localhost:8765, or start the bridge with `--allow-origin`. |
 | Connected, but your program gets nothing | Same **port** in both? **To** = 127.0.0.1 for this Mac? No points selected? (tick *all 46 points* to test.) Is the body tracked? |

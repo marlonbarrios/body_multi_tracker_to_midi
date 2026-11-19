@@ -17,10 +17,23 @@
     lastTracked: {},
     lastTrackedSent: 0,
     retry: null,
+    lna: '',           // Chrome's "local network access" permission (live app only): granted / prompt / denied
+
+    // The live app (https) needs Chrome's "local network access" permission to reach the bridge on
+    // this computer. Watch it so the panel can explain what to click.
+    async watchPermission() {
+      if (location.protocol !== 'https:' || !navigator.permissions) return;
+      try {
+        const p = await navigator.permissions.query({ name: 'local-network-access' });
+        O.lna = p.state;
+        p.onchange = () => { O.lna = p.state; if (p.state === 'granted') O.reconnect(); };
+      } catch { /* older Chrome: no such permission, nothing to do */ }
+    },
 
     // Connect when OSC is on; keep retrying every 2 s while the bridge isn't running.
     update() {
       if (!UI.oscOn) { O.close(); return; }
+      if (!O.lnaWatched) { O.lnaWatched = true; O.watchPermission(); }
       if (O.ws && (O.ws.readyState === 0 || O.ws.readyState === 1)) return;
       clearTimeout(O.retry);
       let ws;

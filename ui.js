@@ -349,7 +349,18 @@
       st.textContent = !UI.oscOn ? 'off'
         : OSC.connected ? `● bridge connected → ${OSC.dest || UI.oscHost + ':' + UI.oscPort} · ${OSC.bridgeRate} msg/s`
         : '○ waiting for the bridge…';
-      $('#oscHelp').hidden = !UI.oscOn || OSC.connected;
+      const help = $('#oscHelp');
+      help.hidden = !UI.oscOn || OSC.connected;
+      const why = OSC.lna === 'denied' ? 'lna-denied' : OSC.lna === 'prompt' ? 'lna-prompt' : 'bridge';
+      if (!help.hidden && help.dataset.why !== why) {
+        help.dataset.why = why;
+        help.innerHTML = why === 'lna-denied'
+          ? '<b>Chrome is blocking this page from reaching the OSC bridge on this computer.</b> Click the icon at the left of the address bar → <b>Site settings</b> → <b>Local network access</b> → <b>Allow</b>, then reload. (Also start <b>Start OSC Bridge.command</b> if it isn\'t running.)'
+          : why === 'lna-prompt'
+            ? 'Start <b>Start OSC Bridge.command</b> and leave its window open. When Chrome asks to let this page <b>access apps and devices on your local network / this device</b>, click <b>Allow</b>: that is the bridge.'
+            : 'The OSC bridge isn\'t running. Double-click <b>Start OSC Bridge.command</b> in the app folder (or run <code>python3 osc_bridge.py</code>) and leave its window open. This connects automatically.';
+      }
+      if (UI.oscOn && !OSC.connected && OSC.lna === 'denied') st.textContent = '○ blocked by Chrome (local network access)';
       $('#oscSample').textContent = UI.oscOn && OSC.connected && OSC.sample ? 'last: ' + OSC.sample : '';
       if (OSC.error) st.textContent += ' · ' + OSC.error;
     },
